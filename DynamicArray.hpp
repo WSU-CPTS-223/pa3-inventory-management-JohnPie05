@@ -1,7 +1,7 @@
 /*
     Author: John Pierce
     Date: 10/22/2025
-    Description: this is a vector like arrray implemented from scratch
+    Description: this is a vector like array implemented from scratch
 */
 
 #pragma once
@@ -12,18 +12,18 @@
 template <typename T>
 class DynamicArray
 {
-    public:
-        DynamicArray(): data(nullptr), size(0), cap(0) {}
+public:
+    DynamicArray() : data(nullptr), size(0), cap(0) {}
 
-        DynamicArray(const DynamicArray& other) : data(nullptr), size(0), cap(0)
+    DynamicArray(const DynamicArray& other) : data(nullptr), size(0), cap(0)
+    {
+        reserve(other.cap);
+        for (size_t i = 0; i < other.getSize(); i++)
         {
-            reserve(other.cap);
-            for (size_t i = 0; i < other.size; i++)
-            {
-                data[i] = other.data[i];
-            }
-            size = other.size;
+            data[i] = other.data[i];
         }
+        size = other.getSize();
+    }
 
     DynamicArray& operator=(const DynamicArray& other)
     {
@@ -32,50 +32,53 @@ class DynamicArray
         clear();
         reserve(other.cap);
 
-        for (size_t i = 0; i < other.size; i++)
+        for (size_t i = 0; i < other.getSize(); i++)
         {
             data[i] = other.data[i];
         }
 
-        size = other.size;
+        size = other.getSize();
         return *this;
     }
 
-    ~DynamicArray() { std::free(data); }
+    ~DynamicArray()
+    {
+        std::free(data);
+    }
 
     void reserve(size_t newCap)
     {
         if (newCap <= cap) return;
 
         T* newData = (T*)std::malloc(sizeof(T) * newCap);
-
         if (!newData) return;
 
         for (size_t i = 0; i < size; i++) newData[i] = data[i];
+
         std::free(data);
         data = newData;
-        cap  = newCap;
+        cap = newCap;
     }
 
     void pushBack(const T& value)
     {
-        grow();
-        data[size++] = value;
+        growIfNeeded();
+        data[size] = value;
+        size = size + 1;
     }
 
-    size_t size() const { return size; }
+    // Renamed getter — avoids name clash
+    size_t getSize() const { return size; }
 
     void clear()
     {
         std::free(data);
-
         data = nullptr;
         size = 0;
-        cap  = 0;
+        cap = 0;
     }
 
-    T& operator[](size_t index) { return _data[index]; }
-
+    T& operator[](size_t index) { return data[index]; }
     const T& operator[](size_t index) const { return data[index]; }
 
     bool removeFirst(const T& value)
@@ -84,35 +87,33 @@ class DynamicArray
         {
             if (data[i] == value)
             {
-                // shift down
                 for (size_t j = i + 1; j < size; j++)
                 {
-                    data[j - 1] =_data[j];
+                    data[j - 1] = data[j];
                 }
-                size--;
+                size = size - 1;
                 return true;
             }
         }
         return false;
     }
 
-    private:
-        T* data;
-        size_t size;
-        size_t cap;
+private:
+    T* data;
+    size_t size;
+    size_t cap;
 
-        void grow()
+    void growIfNeeded()
+    {
+        size_t newCap;
+        if (cap == 0)
         {
-            size_t newCap;
-            if (_cap == 0)
-            {
-                newCap = 4;
-            }else 
-            {
-                newCap = cap * 2;
-            }
-
-            reserve(newCap);
+            newCap = 4;
         }
-        
+        else
+        {
+            newCap = cap * 2;
+        }
+        reserve(newCap);
+    }
 };
