@@ -26,7 +26,7 @@ std::string DataStore::header(const std::string& in)
 
 int DataStore::headerIndex(const DynamicArray<std::string>& h, const char* target)
 {
-    for (size_t i = 0; i < h.size(); i++)
+    for (size_t i = 0; i < h.Size(); i++)
     {
         if (header(h[i]) == target)
             return (int)i;
@@ -95,7 +95,7 @@ bool DataStore::loadCSV(const char* path, std::string& errorMsg)
         return false;
     }
 
-    if (rows.size() == 0)
+    if (rows.Size() == 0)
     {
         errorMsg = "CSV is empty!!";
         return false;
@@ -106,7 +106,7 @@ bool DataStore::loadCSV(const char* path, std::string& errorMsg)
     const int idxName = headerIndex(header, "product_name");
     const int idxCate = headerIndex(header, "category");
 
-    for (size_t r = 1; r < rows.size(); r++)
+    for (size_t r = 1; r < rows.Size(); r++)
     {
         const auto& row = rows[r];
 
@@ -120,7 +120,7 @@ bool DataStore::loadCSV(const char* path, std::string& errorMsg)
         DynamicArray<std::string> t;
         splitCategories(cats, t);
 
-        for (size_t i = 0; i < t.size(); i++)
+        for (size_t i = 0; i < t.Size(); i++)
         {
             std::string tok = t[i];
             DynamicArray<std::string> list;
@@ -179,7 +179,7 @@ bool DataStore::deleteById(const std::string& id, std::string& msg) {
 
     splitCategories(p.categories, toks);
 
-    for (size_t i = 0; i < toks.size(); i++)
+    for (size_t i = 0; i < toks.Size(); i++)
     {
         std::string tok = toks[i];
         DynamicArray<std::string> list;
@@ -213,7 +213,7 @@ bool DataStore::countByCategory(const std::string& category, size_t& outCount) c
 
     if (!catIndex.find(category, s)) return false;
 
-    outCount = s.size();
+    outCount = s.Size();
     return true;
 }
 
