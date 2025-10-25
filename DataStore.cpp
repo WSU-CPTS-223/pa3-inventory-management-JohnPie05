@@ -95,7 +95,7 @@ bool DataStore::loadCSV(const char* path, std::string& errorMsg)
         return false;
     }
 
-    if (rows.Size() == 0)
+    if (rows.getSize() == 0)
     {
         errorMsg = "CSV is empty!!";
         return false;
