@@ -1,64 +1,72 @@
 /*
     Author: John Pierce
     Date: 10/22/2025
-    Description: hash table funcitons such as linear probing
+    Description: hash table functions using linear probing
 */
 
 #pragma once
 #include <cstddef>
 #include <functional> // std::hash
-
+#include <cstdlib>
+#include <new>
 
 template<typename Key, typename Value, typename Hash = std::hash<Key>>
 class HashTable
 {
-    public:
-    
-    explicit HashTable(size_t initialCap = 101) : table(nullptr), cap(0), size(0), hasher(Hash())
+public:
+    explicit HashTable(size_t initialCap = 101)
+        : table(nullptr), cap(0), size(0), hasher(Hash())
     {
         cap = nextPrime(initialCap);
         table = (Slot*)std::malloc(sizeof(Slot) * cap);
-        if(table)
+        if (table)
         {
-            for(size_t i = 0; i < cap; i++)
-            [
+            for (size_t i = 0; i < cap; i++)
+            {
                 new (&table[i]) Slot();
-            ]
+            }
         }
     }
 
-    ~HashTable() { std::free(table);}
+    ~HashTable() { std::free(table); }
 
-    size_t size() const {return size;}
-    size_t capacity() const {return cap;}
-
-    // info on the use of the conditional ?, https://stackoverflow.com/questions/16887226/what-does-and-mean-in-c
+    // Renamed getters so they do not collide with data members
+    size_t getSize() const { return size; }
+    size_t getCapacity() const { return cap; }
 
     bool insert(const Key& key, const Value& value)
     {
         grow();
+
         size_t index = probeIndex(key);
-        size_t first = -1;
+        size_t firstTomb = cap; // cap means no tombstone found yet
 
         for (size_t i = 0; i < cap; i++)
         {
-            if (table[index].state == EMPTY) {
-                size_t target = (first != -1 ? (size_t)first : index);
+            Slot& s = table[index];
+
+            if (s.state == EMPTY)
+            {
+                size_t target = (firstTomb != cap) ? firstTomb : index;
                 table[target].key = key;
                 table[target].value = value;
                 table[target].state = OCCUPIED;
-                size++;
+                size = size + 1;
                 return true;
+            }
+            else if (s.state == TOMBSTONE)
+            {
+                if (firstTomb == cap) firstTomb = index;
+            }
+            else // OCCUPIED
+            {
+                if (s.key == key)
+                {
+                    s.value = value;
+                    return true;
+                }
             }
 
-            if (table[index].state == TOMBSTONE && first == -1) // TOMBSTONE marks deleted spots
-            }
-                first = (int)index;
-            { else if (table[index].state == OCCUPIED && table[index].key == key)
-                {
-                table[index].value = value;
-                return true;
-            }
             index = (index + 1) % cap;
         }
         return false;
@@ -69,11 +77,13 @@ class HashTable
         size_t index = probeIndex(key);
         for (size_t i = 0; i < cap; i++)
         {
-            if (table[index].state == EMPTY) return false;
+            const Slot& s = table[index];
 
-            if (table[index].state == OCCUPIED && table[index].key == key)
+            if (s.state == EMPTY) return false;
+
+            if (s.state == OCCUPIED && s.key == key)
             {
-                out = table[index].value;
+                out = s.value;
                 return true;
             }
             index = (index + 1) % cap;
@@ -86,20 +96,22 @@ class HashTable
         size_t index = probeIndex(key);
         for (size_t i = 0; i < cap; i++)
         {
-            if (table[index].state == EMPTY) return false;
+            Slot& s = table[index];
 
-            if (table[index].state == OCCUPIED && table[index].key == key)
+            if (s.state == EMPTY) return false;
+
+            if (s.state == OCCUPIED && s.key == key)
             {
-                table[index].state = TOMBSTONE;
-                size--;
+                s.state = TOMBSTONE;
+                size = size - 1;
                 return true;
             }
             index = (index + 1) % cap;
         }
         return false;
     }
-    
-     //needs to be a template so it can convert what user provides
+
+    // iterate over occupied slots
     template <typename Fn>
     void each(Fn fn) const
     {
@@ -112,8 +124,7 @@ class HashTable
         }
     }
 
-
-    private:
+private:
     enum SlotState { EMPTY = 0, OCCUPIED = 1, TOMBSTONE = 2 };
 
     struct Slot
@@ -121,7 +132,7 @@ class HashTable
         Key       key;
         Value     value;
         SlotState state;
-        Slot(): key(), value(), state(EMPTY) {}
+        Slot() : key(), value(), state(EMPTY) {}
     };
 
     Slot*  table;
@@ -132,9 +143,8 @@ class HashTable
     static bool isPrime(size_t n)
     {
         if (n < 2) return false;
-
-        for (size_t i = 2; i * i <= n; i++) if (n % i == 0) return false;
-
+        for (size_t i = 2; i * i <= n; i++)
+            if (n % i == 0) return false;
         return true;
     }
 
@@ -142,12 +152,7 @@ class HashTable
     {
         size_t x = n;
         if (x < 2) x = 2;
-        
-        while (!isPrime(x))
-        {
-            x++;
-        }
-        
+        while (!isPrime(x)) x = x + 1;
         return x;
     }
 
@@ -158,18 +163,18 @@ class HashTable
 
     void grow()
     {
+        // load factor threshold 0.6
         if (size * 10 < cap * 6) return;
-
         rehash(cap * 2);
     }
 
     void rehash(size_t newCap)
     {
         if (newCap < 11) newCap = 11;
-
         size_t newCap2 = nextPrime(newCap);
 
         Slot* newTable = (Slot*)std::malloc(sizeof(Slot) * newCap2);
+        if (!newTable) return;
 
         for (size_t i = 0; i < newCap2; i++)
         {
@@ -180,7 +185,7 @@ class HashTable
         {
             if (table[i].state == OCCUPIED) {
                 const Key& k = table[i].key;
-                size_t index = Hash{}(k) % newCap2;
+                size_t index = std::hash<Key>{}(k) % newCap2;
                 while (newTable[index].state == OCCUPIED)
                     index = (index + 1) % newCap2;
                 newTable[index] = table[i];
@@ -190,5 +195,4 @@ class HashTable
         table = newTable;
         cap   = newCap2;
     }
-
 };
