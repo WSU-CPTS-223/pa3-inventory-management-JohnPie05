@@ -113,7 +113,7 @@ void evalCommand(string line)
             cout << "Invalid Category\n";
         }
 
-        for (size_t i = 0; i < ids.size(); i++)
+        for (size_t i = 0; i < ids.getSize(); i++)
         {
             std::string name;
             if (Store.getNameForId(ids[i], name))
