@@ -1,11 +1,12 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -g
-
+INCLUDES = -Iinclude
 APP = mainexe
-SOURCES := $(wildcard src/*.cpp)
+
+SOURCES = main.cpp DataStore.cpp CSVReader.cpp
 
 $(APP): $(SOURCES)
-	$(CXX) $(CXXFLAGS) -Iinclude $(SOURCES) -o $(APP)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(SOURCES) -o $(APP)
 
 clean:
 	rm -f $(APP)
