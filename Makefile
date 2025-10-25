@@ -1,8 +1,11 @@
-CXX = g++
+CXX      = g++
 CXXFLAGS = -std=c++11 -Wall -g
 
-mainexe: src/main.cpp src/DataStore.cpp src/CSVReader.cpp src/Product.cpp
-	$(CXX) $(CXXFLAGS) -Iinclude src/main.cpp src/DataStore.cpp src/CSVReader.cpp src/Product.cpp -o mainexe
+APP      = mainexe
+SOURCES  := $(wildcard src/*.cpp)
+
+$(APP): $(SOURCES)
+	$(CXX) $(CXXFLAGS) -Iinclude $(SOURCES) -o $(APP)
 
 clean:
-	rm -f mainexe
+	rm -f $(APP)
