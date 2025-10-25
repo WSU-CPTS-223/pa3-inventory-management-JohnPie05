@@ -79,14 +79,14 @@ void evalCommand(string line)
         if (Store.findByID(id, p))
         {
             cout << "Inventory found\n";
-            cout << "  Uniq Id      %s\n", p.uniqID.c_str();
-            cout << "  Product Name %s\n", p.productName.c_str();
+            cout << "  Uniq Id " << p.uniqID.c_str();
+            cout << "  Product Name " << p.productName.c_str();
             if (p.categories.empty())
             {
                 cout << "  Categories   NA\n";
             } else
             {
-                cout << "  Categories   %s\n", p.categories.c_str();
+                cout << "  Categories  " << p.categories.c_str();
             }
         } else
         {
@@ -118,10 +118,10 @@ void evalCommand(string line)
             std::string name;
             if (Store.getNameForId(ids[i], name))
             {
-                cout << "%s %s\n", ids[i].c_str(), name.c_str();
+                cout << ids[i].c_str() << " " << name.c_str();
             } else
             {
-                cout << "%s NameMissing\n", ids[i].c_str();
+                cout << ids[i].c_str() << "NameMissing\n";
             }
         }
     }
@@ -131,8 +131,8 @@ void evalCommand(string line)
 
 static bool bootStrap(int argc, const char* argv[])
 {
-    cout << "\n Welcome to Amazon Inventory Query System" << endl;
-    cout << " enter :quit to exit. or :help to list supported commands." << endl;
+    cout << "\n Welcome to Amazon Inventory Query System\n";
+    cout << " enter :quit to exit. or :help to list supported commands.\n";
     cout << "\n> ";
 
     if (argc < 2)
