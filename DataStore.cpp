@@ -9,6 +9,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <string>
 
 DataStore::DataStore() : idIndex(10007), catIndex(10007) {}
 
@@ -28,8 +29,7 @@ int DataStore::headerIndex(const DynamicArray<std::string>& h, const char* targe
 {
     for (size_t i = 0; i < h.getSize(); i++)
     {
-        if (header(h[i]) == target)
-            return (int)i;
+        if (header(h[i]) == target) return (int)i;
     }
     return -1;
 }
@@ -49,41 +49,50 @@ static void trim(std::string& s)
 
 void DataStore::splitCategories(const std::string& t, DynamicArray<std::string>& out)
 {
-    if (t.empty())
-    {
+    auto trim = [](std::string& s) {
+        size_t a = 0, b = s.size();
+        while (a < b && std::isspace((unsigned char)s[a])) a++;
+        while (b > a && std::isspace((unsigned char)s[b - 1])) b--;
+        s = s.substr(a, b - a);
+    };
+
+    if (t.empty()) {
         out.pushBack("N/A");
         return;
     }
 
     std::string cur;
-    for (char c : t)
+    for (size_t i = 0; i < t.size(); i++)
     {
-        if (c == '|')
-        {
+        char c = t[i];
+
+        // Treat '|' as a separator
+        if (c == '|') {
             trim(cur);
-            if (cur.empty()) 
-            {
-            out.pushBack("N/A");
-            }else 
-            {
-                out.pushBack(cur);
-            }
+            if (!cur.empty()) out.pushBack(cur);
             cur.clear();
-        } else 
-        {
-            cur.push_back(c);
+            continue;
         }
+
+        // Treat ">>" as a separator (consume both '>')
+        if (c == '>' && i + 1 < t.size() && t[i + 1] == '>') {
+            trim(cur);
+            if (!cur.empty()) out.pushBack(cur);
+            cur.clear();
+            // consume the second '>'
+            i++;
+            continue;
+        }
+
+        cur.push_back(c);
     }
 
     trim(cur);
-    if (cur.empty())
-    {
-        out.pushBack("NA");
-    }else
-    {
-        out.pushBack(cur);
-    }
+    if (!cur.empty()) out.pushBack(cur);
+    else if (out.getSize() == 0) out.pushBack("N/A");
 }
+
+
 
 bool DataStore::loadCSV(const char* path, std::string& errorMsg)
 {
