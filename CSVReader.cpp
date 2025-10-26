@@ -45,7 +45,7 @@ bool CSVReader::readAll(const char* path, DynamicArray< DynamicArray<std::string
     }
 
 
-    FILE* infile = std::fopen(path, "r");
+   // FILE* infile = std::fopen(path, "r");
     if (!infile) return false;
 
     const size_t num = 8192;
