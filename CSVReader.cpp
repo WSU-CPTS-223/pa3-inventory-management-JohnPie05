@@ -37,7 +37,15 @@ static void parseCsvLine(const char* line, DynamicArray<std::string>& fields)
 
 bool CSVReader::readAll(const char* path, DynamicArray< DynamicArray<std::string> >& out)
 {
-    FILE* infile = std::fopen(path, "marketing_sample_for_amazon_com-ecommerce__20200101_20200131__10k_data-1.csv");
+    FILE* infile = std::fopen(path, "rb");  // "rb" handles Windows line endings too
+    if (!infile)
+    {
+        std::fprintf(stderr, "fopen failed for '%s': %s\n", path, std::strerror(errno));
+        return false;
+    }
+
+
+    FILE* infile = std::fopen(path, "r");
     if (!infile) return false;
 
     const size_t num = 8192;
